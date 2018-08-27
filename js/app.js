@@ -53,10 +53,19 @@
     const email = signuptxtEmail.value;
     const pass = signuptxtPassword.value;
     const auth = firebase.auth();
+    const firstname = document.getElementById("signup_txtfirst").value;
+    const lastname = document.getElementById("signup_txtlast").value;
+    const city = document.getElementById("signup_txtcity").value;
+    const phone = document.getElementById("signup_txtphone").value;
+    const postcode = document.getElementById("signup_txtpostcode").value;
+    const streetaddress = document.getElementById("signup_txtstreet").value;
 
+    data = {firstname, lastname, city, phone, postcode, streetaddress, email};
+    var rootdata = firebase.database().ref().child("content/");
+    rootdata.push(data);
     const promise = auth.createUserWithEmailAndPassword(email, pass);
     promise
-    .catch( e => console.log(e.message))
+    .catch( e => console.log(e.message));
   });
 
   //LOG OUT
@@ -65,6 +74,7 @@
     mainpage.classList.add("hide");
   });
 
+  // CHECK THE STATE AND UPDATE STATUS 
   firebase.auth().onAuthStateChanged(firebaseUser => {
       if(firebaseUser){
           signintxtEmail.value = "";
@@ -78,5 +88,35 @@
       } else {
           signupform.classList.remove("hide");
       }
-  })
+  });
+
+  var btnEdit = `<button type="submit" class="btn btn-info edit">EDIT</button>`;
+  var btnDelete = `<button type="submit" class="btn btn-danger deleteData">DELETE</button>`;
+
+  //WORKING WITH TABLE - GET DATA FROM FIREBASE
+  const tbody = document.querySelector("tbody");
+  //   // Get content child of database
+    var database = firebase.database().ref().child("content");
+    database.on("child_added", function(snap){
+      
+      //Loop through each list in content
+      var tr = document.createElement("tr");
+      var id = (snap.key).toString();
+      var contentRef = firebase.database().ref().child("content");
+      var childTest = contentRef.child(id);
+      childTest.on("value" , function(snap){
+        var result = Object.keys(snap.val()).map(function(key) {
+            return [key, snap.val()[key]];
+      });
+      for(var n = 0; n<= 6; n++){
+          var td = document.createElement("td");
+          td.innerHTML = result[n][1];
+          tr.appendChild(td);
+      };
+      
+      tr.id = id;
+      //Append rows to the table
+      tbody.appendChild(tr);
+      });
+    });
 }());
